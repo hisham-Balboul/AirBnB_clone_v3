@@ -113,3 +113,55 @@ class TestFileStorage(unittest.TestCase):
         with open("file.json", "r") as f:
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
+
+
+@unittest.skipIf(STORAGE_TYPE == 'db', 'skip if environ is db')
+class TestUserFsInstances(unittest.TestCase):
+    """testing for class instances"""
+
+    @classmethod
+    def setUpClass(cls):
+        """sets up the class"""
+        print('\n\n.................................')
+        print('...... Testing FileStorage ......')
+        print('.......... User  Class ..........')
+        print('.................................\n\n')
+        cls.user = User()
+        cls.user.save()
+        cls.bm_obj = BaseModel()
+        cls.bm_obj.save()
+
+    def tearDownClass():
+        """tidies up the tests removing storage objects"""
+        storage.delete_all()
+        remove(F)
+
+    def setUp(self):
+        """initializes new user for testing"""
+        self.user = TestUserFsInstances.user
+        self.bm_obj = TestUserFsInstances.bm_obj
+
+    def test_storage_file_exists(self):
+        """... checks proper FileStorage instantiation"""
+        remove(F)
+        self.user.save()
+        self.assertTrue(path.isfile(F))
+
+    def test_count_cls(self):
+        """... checks count method with class input arg"""
+        count_user = storage.count('User')
+        expected = 1
+        self.assertEqual(expected, count_user)
+
+    def test_count_all(self):
+        """... checks the count method with no class input"""
+        count_all = storage.count()
+        expected = 2
+        self.assertEqual(expected, count_all)
+
+    def test_get_cls_id(self):
+        """... checks get method with class and id inputs"""
+        duplicate = storage.get('User', self.user.id)
+        expected = self.user.id
+        actual = duplicate.id
+        self.assertEqual(expected, actual)
